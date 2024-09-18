@@ -1,0 +1,13 @@
+langchain
+langchain-openai
+langchain_core
+langchain-community
+langchainhub
+langchain-qdrant
+tiktoken
+pypdf
+chainlit==0.7.700
+openai
+qdrant-client
+pymupdf
+ragas
