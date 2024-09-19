@@ -44,35 +44,27 @@ prompt = ChatPromptTemplate.from_messages(messages)
 chain_type_kwargs = {"prompt": prompt}
 
 
-def generate_vdb(chunks=None):
+def generate_vdb(chunks):
     EMBEDDING_MODEL = "text-embedding-3-small"
     embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
-    PERSIST_PATH = "./qdrant_vector_db"  # Directory to store Qdrant collection
-    COLLECTION_NAME = "legal_data"
+    LOCATION = ":memory:"
+    COLLECTION_NAME = "legal data"
     VECTOR_SIZE = 1536
 
-    # Check if the vector database already exists
-    if os.path.exists(PERSIST_PATH):
-        print(f"Loading existing Qdrant database from {PERSIST_PATH}")
-        qdrant_client = QdrantClient(path=PERSIST_PATH)  # Load the existing DB
-        qdrant_vector_store = QdrantVectorStore(
-            client=qdrant_client,
-            collection_name=COLLECTION_NAME,
-            embedding=embeddings,
-        )
-    else:
-        print(f"Creating new Qdrant database at {PERSIST_PATH}")
-        qdrant_client = QdrantClient(path=PERSIST_PATH)  # Create a new DB
-        qdrant_client.create_collection(
-            collection_name=COLLECTION_NAME,
-            vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
-        )
-        qdrant_vector_store = QdrantVectorStore(
-            client=qdrant_client,
-            collection_name=COLLECTION_NAME,
-            embedding=embeddings,
-        )
-        qdrant_vector_store.add_documents(chunks)
+    qdrant_client = QdrantClient(LOCATION)
+
+    qdrant_client.create_collection(
+        collection_name=COLLECTION_NAME,
+        vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
+    )
+
+    qdrant_vector_store = QdrantVectorStore(
+        client=qdrant_client,
+        collection_name=COLLECTION_NAME,
+        embedding=embeddings,
+    )
+
+    qdrant_vector_store.add_documents(chunks)
     return qdrant_vector_store
 
 
@@ -87,12 +79,11 @@ async def on_chat_start():
     "https://www.whitehouse.gov/wp-content/uploads/2022/10/Blueprint-for-an-AI-Bill-of-Rights.pdf",
     "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf"]
 
-    if not os.path.exists("./qdrant_vector_db"):
-        documents = []
-        for pdf_link in pdf_links:
-            loader = PyMuPDFLoader(pdf_link)
-            loaded_docs = loader.load()
-            documents.extend(loaded_docs)
+    documents = []
+    for pdf_link in pdf_links:
+        loader = PyMuPDFLoader(pdf_link)
+        loaded_docs = loader.load()
+        documents.extend(loaded_docs)
 
         CHUNK_SIZE = 1000
         CHUNK_OVERLAP = 200
@@ -105,8 +96,6 @@ async def on_chat_start():
         split_chunks = text_splitter.split_documents(documents)
 
         docsearch = generate_vdb(split_chunks)
-    else:
-        docsearch = generate_vdb()
 
     # Let the user know that the system is ready
     msg = cl.Message(
