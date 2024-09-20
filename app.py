@@ -24,6 +24,7 @@ import chainlit as cl
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
+from langchain_huggingface import HuggingFaceEmbeddings
 
 system_template = """Use the following pieces of context to answer the users question.
 If you don't know the answer, just say that you don't know, don't try to make up an answer.
@@ -43,13 +44,15 @@ messages = [
 prompt = ChatPromptTemplate.from_messages(messages)
 chain_type_kwargs = {"prompt": prompt}
 
-
+huggingface_embeddings = HuggingFaceEmbeddings(model_name="yinong333/finetuned_MiniLM")
 def generate_vdb(chunks):
-    EMBEDDING_MODEL = "text-embedding-3-small"
-    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    #EMBEDDING_MODEL = "text-embedding-3-small"
+    #embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    embeddings = huggingface_embeddings
     LOCATION = ":memory:"
     COLLECTION_NAME = "legal data"
-    VECTOR_SIZE = 1536
+    #VECTOR_SIZE = 1536
+    VECTOR_SIZE = 384
 
     qdrant_client = QdrantClient(LOCATION)
 
@@ -112,7 +115,7 @@ async def on_chat_start():
         return_messages=True,
     )
 
-    # Create a chain that uses the Chroma vector store
+    # Create a chain that uses the Qdrant vector store
     chain = ConversationalRetrievalChain.from_llm(
         ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, streaming=True),
         chain_type="stuff",
