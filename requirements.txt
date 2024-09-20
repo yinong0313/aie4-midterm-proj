@@ -2,6 +2,7 @@ langchain
 langchain-openai
 langchain_core
 langchain-community
+langchain_huggingface
 langchainhub
 langchain-qdrant
 tiktoken
