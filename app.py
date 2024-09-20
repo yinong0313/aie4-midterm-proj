@@ -46,13 +46,13 @@ chain_type_kwargs = {"prompt": prompt}
 
 huggingface_embeddings = HuggingFaceEmbeddings(model_name="yinong333/finetuned_MiniLM")
 def generate_vdb(chunks):
-    #EMBEDDING_MODEL = "text-embedding-3-small"
-    #embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
-    embeddings = huggingface_embeddings
+    EMBEDDING_MODEL = "text-embedding-3-small"
+    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    #embeddings = huggingface_embeddings
     LOCATION = ":memory:"
     COLLECTION_NAME = "legal data"
-    #VECTOR_SIZE = 1536
-    VECTOR_SIZE = 384
+    VECTOR_SIZE = 1536
+    #VECTOR_SIZE = 384
 
     qdrant_client = QdrantClient(LOCATION)
 
